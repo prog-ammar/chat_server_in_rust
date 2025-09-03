@@ -41,18 +41,27 @@ pub fn listens(ip_address: &str)
   {
     match stream
     {
-        Ok(data) =>
+        Ok(mut data) =>
         {
             // println!("Connection Successfull : {}",stream.peer_addr()?);
-            let client_ip = ToString::to_string(&data.peer_addr().unwrap());
-            let mut client= TcpStream::connect(&client_ip).unwrap();
-            client.write_all(b"Enter Your Name : ").unwrap();
-            let mut client_name=String::new();
-            client.read_to_string(&mut client_name).unwrap();
-            ips_map.insert(client_ip,client_name.clone());
-            let msg=client_name+"Joined !";
-            client.write_all(msg.as_bytes()).unwrap();
-
+            // let client_ip = ToString::to_string(&data.peer_addr().unwrap().ip());
+            data.write_all(b"Enter Your Name : ").unwrap();
+            let mut client_name=[0;1024];
+            match data.read(&mut client_name)
+            {
+                Ok(b) => if b > 0
+                {
+                    let name=String::from_utf8_lossy(&client_name[..b]);
+                    println!("{} Joined!",name);
+                    let msg=format!("{} Joined\n",name);
+                    data.write_all(msg.as_bytes()).unwrap();
+                }
+                Err(e) =>
+                {
+                    println!("Error has Occured!");
+                }
+            };
+            // ips_map.insert(client_ip,client_name.clone());
             handle_connection(data);
         }
         Err(e) =>
