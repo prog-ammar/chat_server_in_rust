@@ -6,12 +6,13 @@ use std::io::{Write};
 
 pub fn handle_connection(mut data: TcpStream)
 {
-    let mut data_string=String::new();
-    match data.read_to_string(&mut data_string)
+    let mut data_string=[0;1024];
+    match data.read(&mut data_string)
     {
-        Ok(e) =>
+        Ok(bytes) => if bytes > 0
         {
-            println!("Recieved Data : {} {}",data_string,e);
+            let recv_data=String::from_utf8_lossy(&data_string[0..bytes]);
+            println!("Recieved Data : {}",recv_data);
         }
         Err(e) =>
         {
@@ -61,7 +62,7 @@ pub fn listens(ip_address: &str)
                     }
                     Err(e) =>
                     {
-                        println!("Error has Occured!");
+                        println!("Error : {}",e);
                     }
                 };
                 handle_connection(data);
