@@ -56,24 +56,24 @@ pub fn handle_connection(mut data: TcpStream)
     loop
     {
     let mut buffer=[0;1];
-    let mut data_present:bool =false;
+    let mut data_present:bool =true;
 
-    match data.peek(&mut buffer)
-    {
-        Ok(0) =>
-        {
-            data_present=false;
-        }
-        Ok(_) =>
-        {
-            data_present=true;
-        }
-        Err(e) =>
-        {
-            println!("Error : {}",e);
-            return;
-        }
-    }
+    // match data.peek(&mut buffer)
+    // {
+    //     Ok(0) =>
+    //     {
+    //         data_present=false;
+    //     }
+    //     Ok(_) =>
+    //     {
+    //         data_present=true;
+    //     }
+    //     Err(e) =>
+    //     {
+    //         println!("Error : {}",e);
+    //         return;
+    //     }
+    // }
 
     if data_present
     {
@@ -85,7 +85,6 @@ pub fn handle_connection(mut data: TcpStream)
                 let recv_data=String::from_utf8_lossy(&data_string[0..bytes]).to_string();
                 let msg=format!("{} : {}",name,recv_data);
                 println!("{}",msg);
-                data.write_all(msg.as_bytes()).unwrap();
             }
             Err(e) =>
             {
@@ -112,7 +111,7 @@ pub fn listens(ip_address: &str)
     }
   };
 
-  
+    let mut clients: Vec<TcpStream> =Vec::new();  
 
   for stream in listener.incoming()
   {
@@ -120,7 +119,8 @@ pub fn listens(ip_address: &str)
     {
         Ok(data) =>
         {
-            thread::spawn(move||
+           clients.push(data.try_clone().unwrap());
+           thread::spawn(move||
                 {handle_connection(data)});
         }
         Err(e) =>

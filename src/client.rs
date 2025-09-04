@@ -9,7 +9,7 @@ fn connect(server_ip: &str)
     let mut server=TcpStream::connect(server_ip).expect("Failed To Connect");
 
     let reader_stream = server.try_clone().expect("Failed to clone stream");
-    // let writer_stream = server.try_clone().expect("Failed to clone stream");
+    let writer_stream = server.try_clone().expect("Failed to clone stream");
     
     let mut name=String::new();
 
@@ -120,32 +120,21 @@ fn connect(server_ip: &str)
     //     }
     // });
     
-    thread::spawn(move||{
-        receive_data(&reader_stream);
+    let receive_handle=thread::spawn(move||{
+        receive_data(reader_stream);
     });
 
-    let mut message=String::new();
-        loop
-        {
-            io::stdin().read_line(&mut message).expect("Error has occured");
-            match server.write_all(message.trim().as_bytes())
-            {
-                Ok(_) =>
-                {
-                    
-                }
-                Err(e) =>
-                {
-                    println!("Error : {}",e);
-                }
-            }  
-            message.clear();    
-        }  
+    let send_handle=thread::spawn(move||{
+        send_data(writer_stream);
+    });
+
+    receive_handle.join().unwrap();
+    send_handle.join().unwrap();
 }
 
 
 
-fn receive_data(mut server: &TcpStream)
+fn receive_data(mut server: TcpStream)
 {
     let mut rec_data=[0;1024];
     let mut buffer=[0;1];
@@ -187,6 +176,28 @@ fn receive_data(mut server: &TcpStream)
             }  
         }
     }
+}
+
+
+fn send_data(mut server: TcpStream)
+{
+        let mut message=String::new();
+        loop
+        {
+            io::stdin().read_line(&mut message).expect("Error has occured");
+            match server.write_all(message.trim().as_bytes())
+            {
+                Ok(_) =>
+                {
+                    
+                }
+                Err(e) =>
+                {
+                    println!("Error : {}",e);
+                }
+            }  
+            message.clear();    
+        } 
 }
 
 fn main()
