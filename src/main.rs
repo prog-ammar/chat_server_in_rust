@@ -19,8 +19,7 @@ fn main()
         print!("\nEnter Port Number : ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut server_port).expect("Failed to read line");
-        let port_number :i8 = server_port.trim().parse::<i8>().expect("Please Enter An Valid Port Number");
-        println!("Started Listening on {} Port =>",port_number);
+        let port_number :i32 = server_port.trim().parse::<i32>().expect("Please Enter An Valid Port Number");
         let server_addr=format!("0.0.0.0:{}",port_number);
         server::listens(&server_addr);
     }
@@ -29,8 +28,9 @@ fn main()
         let mut ip_of_server=String::new();
         print!("\nEnter Server IP with Port i.e x.x.x:xx : ");
         io::stdout().flush().unwrap();
+        
         io::stdin().read_line(&mut ip_of_server).expect("Failed to read line");
-        client::connect(&ip_of_server);
+        client::connect(&ip_of_server.trim());
     }
     else 
     {

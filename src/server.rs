@@ -4,7 +4,7 @@ use std::net::{IpAddr, TcpListener, TcpStream};
 use std::io::{Write};
 use std::thread;
 use std::sync::{Arc, Mutex};
-use std::sync::mpsc;
+
 
 pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>)
 {
@@ -57,11 +57,6 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
 
     loop
     {
-    let mut buffer=[0;1];
-    let mut data_present:bool =true;
-
-    if data_present
-    {
         let mut data_string=[0;1024];
         match data.read(&mut data_string)
         {
@@ -78,7 +73,6 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
                 return;
             }
         }
-    }
     }
 }   
 
@@ -98,6 +92,7 @@ pub fn send_to_clients(current_client:&TcpStream,clients:&Arc<Mutex<Vec<TcpStrea
 
 pub fn listens(ip_address: &str)
 {
+   println!("Started Chat Server on {}",ip_address);
   let listener= match TcpListener::bind(ip_address)
   {
     Ok(l) =>
