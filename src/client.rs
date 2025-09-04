@@ -4,10 +4,10 @@ use std::net::{TcpStream};
 use std::io;
 use std::io::{Read};
 use std::io::{Write};
+ use std::io::stdout;
 use std::thread;
-use rpassword::read_password;
+use crossterm::{execute, terminal::{Clear, ClearType}, cursor::MoveUp};
 
-extern crate rpassword;
 
 pub fn connect(server_ip: &str)
 {
@@ -137,9 +137,9 @@ pub fn send_data(mut server: TcpStream)
         let mut message=String::new();
         loop
         {
-            print!("You : ");
-            io::stdout().flush().unwrap();
+            
             io::stdin().read_line(&mut message).expect("Error has occured");
+            execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
             match server.write_all(message.trim().as_bytes())
             {
                 Ok(_) =>

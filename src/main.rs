@@ -6,7 +6,7 @@ use std::io::{ Write};
 fn main() 
 {
     let mut user_input=String::new();
-    print!("1 => Start Server\n2 => Start Client\nEnter Choice : ");
+    print!("1 => Start Server\n2 => Start Client\n\nEnter Choice : ");
     io::stdout().flush().unwrap();
 
     io::stdin().read_line(&mut user_input).expect("Failed To Read Line");
