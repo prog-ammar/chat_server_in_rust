@@ -7,19 +7,22 @@ use std::thread;
 fn connect(server_ip: &str)
 {
     let mut server=TcpStream::connect(server_ip).unwrap();
-    let mut name=String::new();
 
     let reader_stream = server.try_clone().expect("Failed to clone stream");
     let writer_stream = server.try_clone().expect("Failed to clone stream");
+    
+    let mut name=String::new();
 
     let mut recv_data=[0;1024];
 
+    let mut first_time_connect:bool = false;
     match server.read(&mut recv_data)
     {
         Ok(bytes) if bytes > 0 =>
         {
             let received = String::from_utf8_lossy(&recv_data[..bytes]);
             println!("{}",received);
+            first_time_connect=true;
         }
         Ok(_) =>
         {
@@ -31,16 +34,19 @@ fn connect(server_ip: &str)
         }
     }
     
-    io::stdin().read_line(&mut name).expect("Error has occured");
-    match server.write_all(name.trim().as_bytes())
+    if first_time_connect==true
     {
-        Ok(_) =>
+        io::stdin().read_line(&mut name).expect("Error has occured");
+        match server.write_all(name.trim().as_bytes())
         {
-            println!("");
-        }
-        Err(e) =>
-        {
-            panic!("Error : {}",e)
+            Ok(_) =>
+            {
+                println!("");
+            }
+            Err(e) =>
+            {
+                panic!("Error : {}",e)
+            }
         }
     }
 
