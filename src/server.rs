@@ -65,11 +65,10 @@ pub fn listens(ip_address: &str)
                         println!("Error : {}",e);
                     }
                 };
-                handle_connection(data);
             }
             else 
             {
-                
+                handle_connection(data);
             }
            
         }
