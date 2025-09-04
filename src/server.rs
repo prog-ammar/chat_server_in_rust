@@ -3,6 +3,7 @@ use std::io::{Read};
 use std::net::{IpAddr, TcpListener, TcpStream};
 use std::io::{Write};
 use std::thread;
+use std::sync::mpsc;
 
 pub fn handle_connection(mut data: TcpStream)
 {
@@ -82,7 +83,9 @@ pub fn handle_connection(mut data: TcpStream)
             Ok(bytes) => if bytes > 0
             {
                 let recv_data=String::from_utf8_lossy(&data_string[0..bytes]).to_string();
-                println!("{}: {}",name,recv_data);
+                let msg=format!("{} : {}",name,recv_data);
+                println!("{}",msg);
+                data.write_all(msg.as_bytes()).unwrap();
             }
             Err(e) =>
             {

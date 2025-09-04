@@ -2,13 +2,13 @@ use std::net::{TcpStream};
 use std::io;
 use std::io::{Read};
 use std::io::{Write};
-// use std::thread;
+use std::thread;
 
 fn connect(server_ip: &str)
 {
     let mut server=TcpStream::connect(server_ip).expect("Failed To Connect");
 
-    // let reader_stream = server.try_clone().expect("Failed to clone stream");
+    let reader_stream = server.try_clone().expect("Failed to clone stream");
     // let writer_stream = server.try_clone().expect("Failed to clone stream");
     
     let mut name=String::new();
@@ -120,6 +120,9 @@ fn connect(server_ip: &str)
     //     }
     // });
     
+    thread::spawn(move||{
+        receive_data(&reader_stream);
+    });
 
     let mut message=String::new();
         loop
@@ -138,6 +141,52 @@ fn connect(server_ip: &str)
             }  
             message.clear();    
         }  
+}
+
+
+
+fn receive_data(mut server: &TcpStream)
+{
+    let mut rec_data=[0;1024];
+    let mut buffer=[0;1];
+    let mut data_present:bool=false;
+    loop
+    {
+        match server.peek(&mut buffer)
+        {
+            Ok(0) => 
+            {
+                data_present=false;
+            }
+            Ok(_) => 
+            {
+                data_present=true;
+            }
+            Err(e) =>
+            {
+                println!("Error : {}",e);
+            }
+        }
+        if data_present
+        {
+            match server.read(&mut rec_data)
+            {
+                Ok(bytes) if bytes > 0 =>
+                {
+                    let received = String::from_utf8_lossy(&rec_data[..bytes]).to_string();
+                    println!("{}",received);
+                }
+                Ok(_) =>
+                {
+                    println!("idk");
+                }
+                Err(e) =>
+                {
+                    println!("Error : {}",e);
+                }
+            }  
+        }
+    }
 }
 
 fn main()
