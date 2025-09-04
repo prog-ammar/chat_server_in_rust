@@ -1,10 +1,15 @@
+
+
 use std::net::{TcpStream};
 use std::io;
 use std::io::{Read};
 use std::io::{Write};
 use std::thread;
+use rpassword::read_password;
 
-fn connect(server_ip: &str)
+extern crate rpassword;
+
+pub fn connect(server_ip: &str)
 {
     let mut server=TcpStream::connect(server_ip).expect("Failed To Connect");
 
@@ -31,7 +36,6 @@ fn connect(server_ip: &str)
         }
         Ok(_) => 
         {
-            println!("Some Data is Avaliable");
             first_time_connect=true;
         }
         Err(e) =>
@@ -58,7 +62,7 @@ fn connect(server_ip: &str)
                 panic!("Error : {}",e)
             }
         }
-        io::stdin().read_line(&mut name).expect("Error has occured");
+        name=read_password().unwrap();
         match server.write_all(name.trim().as_bytes())
         {
             Ok(_) =>
