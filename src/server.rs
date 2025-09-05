@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use std::io::{Read};
-use std::net::{IpAddr, TcpListener, TcpStream};
+use std::net::{ TcpListener, TcpStream};
 use std::io::{Write};
 use std::thread;
 use std::sync::{Arc, Mutex};
@@ -9,31 +8,26 @@ use local_ip_address::{local_ip};
 
 pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>)
 {
-    let mut ips_map:HashMap<IpAddr,String>=HashMap::new();
-
     let mut name=String::new();
-    if ips_map.is_empty() == true || !ips_map.contains_key(&data.peer_addr().unwrap().ip())
+    println!("\nConnection Successfull : {}",data.peer_addr().unwrap());
+    data.write_all(b"Enter Your Name : ").unwrap();
+    let mut buffer=[0;1];
+    let mut data_present:bool=false;
+    match data.peek(&mut buffer)
     {
-        println!("\nConnection Successfull : {}",data.peer_addr().unwrap().ip());
-        let client_ip = data.peer_addr().unwrap().ip();
-        data.write_all(b"Enter Your Name : ").unwrap();
-        let mut buffer=[0;1];
-        let mut data_present:bool=false;
-        match data.peek(&mut buffer)
+        Ok(0) =>
         {
-            Ok(0) =>
-            {
-                data_present=false;
-            }
-            Ok(_) =>
-            {
-                data_present=true;
-            }
-            Err(e) =>
-            {
-                println!("Error : {}",e);
-            }
+            data_present=false;
         }
+        Ok(_) =>
+        {
+            data_present=true;
+        }
+        Err(_e) =>
+        {
+            println!("Disconnected Error : 3");
+        }
+     }
         if data_present
         {
             let mut client_name=[0;1024];
@@ -42,18 +36,16 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
                 Ok(b) => if b > 0
                 {
                     name=String::from_utf8_lossy(&client_name[..b]).to_string();
-                    ips_map.insert(client_ip,name.trim().to_string());
-                    let msg=format!("\n{} Joined!\n",name);
+                    let msg=format!(" {} Joined!\n",name);
                     send_to_clients(/*&data,*/ &clients, &msg);
-                    data.write_all(msg.as_bytes()).unwrap();
                 }
-                Err(e) =>
+                Err(_e) =>
                 {
-                    println!("Error : {}",e);
+                    println!("Disconnected Error : 4");
                 }
             }
         }
-    }
+
 
     loop
     {
@@ -67,9 +59,10 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
                 println!("{}",msg);
                 send_to_clients(/*&data,*/ &clients, &msg);
             }
-            Err(e) =>
+            Err(_e) =>
             {
-                println!("Error : {}",e);
+                println!("Disconnected Error : 5");
+                clients.lock().unwrap().retain(|x| x.peer_addr().unwrap() != data.peer_addr().unwrap());
                 return;
             }
         }
@@ -99,9 +92,10 @@ pub fn listens(ip_address: &str)
     {
         l
     }
-    Err(e) =>
+    Err(_e) =>
     {
-        panic!("Error : {}",e);
+        println!("Disconnted Error : 2");
+        return;
     }
   };
 
@@ -122,9 +116,9 @@ pub fn listens(ip_address: &str)
            thread::spawn(move||
                 {handle_connection(data,clients_copy)});
         }
-        Err(e) =>
+        Err(_e) =>
         {
-            panic!("Error : {}",e);
+            println!("Disconnected Error : 1");
         }
     }
   }

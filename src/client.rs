@@ -1,10 +1,8 @@
-
-
 use std::net::{TcpStream};
 use std::io;
 use std::io::{Read};
 use std::io::{Write};
- use std::io::stdout;
+use std::io::stdout;
 use std::thread;
 use crossterm::{execute, terminal::{Clear, ClearType}, cursor::MoveUp};
 
@@ -58,19 +56,12 @@ pub fn connect(server_ip: &str)
                 panic!("Error : {}",e)
             }
         }
+        
         let  mut name=String::new();
         io::stdin().read_line(&mut name).expect("Cant Read Name");
-        match server.write_all(name.trim().as_bytes())
-        {
-            Ok(_) =>
-            {
-                println!("");
-            }
-            Err(e) =>
-            {
-                panic!("Error : {}",e)
-            }
-        }
+        execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
+
+        server.write_all(name.trim().as_bytes()).unwrap();
     }
     
     let receive_handle=thread::spawn(move||{
@@ -106,9 +97,10 @@ pub fn receive_data(mut server: TcpStream)
             }
             Err(e) =>
             {
-                println!("Error : {}",e);
+                panic!("Error : {}",e);
             }
         }
+
         if data_present
         {
             match server.read(&mut rec_data)
@@ -137,20 +129,9 @@ pub fn send_data(mut server: TcpStream)
         let mut message=String::new();
         loop
         {
-            
             io::stdin().read_line(&mut message).expect("Error has occured");
             execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
-            match server.write_all(message.trim().as_bytes())
-            {
-                Ok(_) =>
-                {
-                    
-                }
-                Err(e) =>
-                {
-                    println!("Error : {}",e);
-                }
-            }  
+            server.write_all(message.trim().as_bytes()).unwrap();  
             message.clear();    
         } 
 }
