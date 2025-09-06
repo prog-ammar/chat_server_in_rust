@@ -14,55 +14,12 @@ pub fn connect(server_ip: &str)
     let reader_stream = server.try_clone().expect("Failed to clone stream");
     let writer_stream = server.try_clone().expect("Failed to clone stream");
     
-
-    let mut recv_data=[0;1024];
-
-    let mut first_time_connect:bool = false;
-
-    let mut buf=[0;1];
-
-    match server.peek(&mut buf)
-    {
-        Ok(0) => 
-        {
-            println!("Server Disconnected!");
-        }
-        Ok(_) => 
-        {
-            first_time_connect=true;
-        }
-        Err(e) =>
-        {
-            panic!("Error : {}",e);
-        }
-    }
-    
-    if first_time_connect==true
-    {
-        match server.read(&mut recv_data)
-        {
-            Ok(bytes) if bytes > 0 =>
-            {
-                let received = String::from_utf8_lossy(&recv_data[..bytes]);
-                print!("{}",received);
-                io::stdout().flush().unwrap();
-            }
-            Ok(_) =>
-            {
-                println!("Connection Closed");
-            }
-            Err(e) =>
-            {
-                panic!("Error : {}",e)
-            }
-        }
         
-        let  mut name=String::new();
-        io::stdin().read_line(&mut name).expect("Cant Read Name");
-        execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
-
-        server.write_all(name.trim().as_bytes()).unwrap();
-    }
+    let  mut name=String::new();
+    println!("Enter Your Username : ");
+    io::stdin().read_line(&mut name).expect("Cant Read Name");
+    execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
+    server.write_all(name.trim().as_bytes()).unwrap();
     
     let receive_handle=thread::spawn(move||{
         receive_data(reader_stream);
