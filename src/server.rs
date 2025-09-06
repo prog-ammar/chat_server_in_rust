@@ -1,4 +1,5 @@
 use std::io::{Read};
+use std::io;
 use std::net::{ TcpListener, TcpStream};
 use std::io::{Write};
 use std::thread;
@@ -9,49 +10,33 @@ use local_ip_address::{local_ip};
 pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>)
 {
     let mut name=String::new();
-    println!("\nConnection Successfull : {}",data.peer_addr().unwrap());
-    data.write_all(b"Enter Your Name : ").unwrap();
-    let mut buffer=[0;1];
-    let mut data_present:bool=false;
-    match data.peek(&mut buffer)
+    println!("\nConnection Successfull : {}\n",data.peer_addr().unwrap());
+    
+    let mut client_name=[0;1024];
+    match data.read(&mut client_name)
     {
-        Ok(0) =>
+        Ok(b) => if b > 0
         {
-            data_present=false;
-        }
-        Ok(_) =>
-        {
-            data_present=true;
+            name=String::from_utf8_lossy(&client_name[..b]).to_string();
+            let msg=format!("\n{} Joined!\n",name);
+            println!(" {} ",msg);
+            send_to_clients(/*&data,*/ &clients, &msg);
         }
         Err(_e) =>
         {
             println!("Disconnected Error : 3");
         }
-     }
-        if data_present
-        {
-            let mut client_name=[0;1024];
-            match data.read(&mut client_name)
-            {
-                Ok(b) => if b > 0
-                {
-                    name=String::from_utf8_lossy(&client_name[..b]).to_string();
-                    let msg=format!(" {} Joined!\n",name);
-                    send_to_clients(/*&data,*/ &clients, &msg);
-                }
-                Err(_e) =>
-                {
-                    println!("Disconnected Error : 4");
-                }
-            }
-        }
-
+    }
 
     loop
     {
         let mut data_string=[0;1024];
         match data.read(&mut data_string)
         {
+            Ok(0) =>
+            {
+                break;
+            }
             Ok(bytes) => if bytes > 0
             {
                 let recv_data=String::from_utf8_lossy(&data_string[0..bytes]).to_string();
@@ -61,8 +46,11 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
             }
             Err(_e) =>
             {
-                println!("Disconnected Error : 5");
+                let msg=format!("\n{} Disconnected\n",name);
+                print!("{}",msg);
+                io::stdout().flush().unwrap();
                 clients.lock().unwrap().retain(|x| x.peer_addr().unwrap() != data.peer_addr().unwrap());
+                send_to_clients(&clients, &msg );
                 return;
             }
         }
