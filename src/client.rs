@@ -7,7 +7,7 @@ use std::thread;
 use crossterm::{execute, terminal::{Clear, ClearType}, cursor::MoveUp};
 
 
-pub fn connect(server_ip: &str)
+pub fn connect(server_ip: &str,name : &str)
 {
     let mut server=TcpStream::connect(server_ip).expect("Enter An Valid Server IP");
 
@@ -15,10 +15,6 @@ pub fn connect(server_ip: &str)
     let writer_stream = server.try_clone().expect("Failed to clone stream");
     
         
-    let  mut name=String::new();
-    println!("Enter Your Username : ");
-    io::stdin().read_line(&mut name).expect("Cant Read Name");
-    execute!(stdout(),MoveUp(1), Clear(ClearType::CurrentLine)).unwrap();
     server.write_all(name.trim().as_bytes()).unwrap();
     
     let receive_handle=thread::spawn(move||{
@@ -39,7 +35,7 @@ pub fn receive_data(mut server: TcpStream)
 {
     let mut rec_data=[0;1024];
     let mut buffer=[0;1];
-    let mut data_present:bool=false;
+    let mut data_present:bool;
     loop
     {
         match server.peek(&mut buffer)
@@ -58,7 +54,7 @@ pub fn receive_data(mut server: TcpStream)
             }
         }
 
-        if data_present
+        if data_present == true
         {
             match server.read(&mut rec_data)
             {

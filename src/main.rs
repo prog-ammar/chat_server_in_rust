@@ -28,9 +28,16 @@ fn main()
         let mut ip_of_server=String::new();
         print!("\nEnter Server IP with Port i.e x.x.x:xx : ");
         io::stdout().flush().unwrap();
-        
         io::stdin().read_line(&mut ip_of_server).expect("Failed to read line");
-        client::connect(&ip_of_server.trim());
+        io::stdout().flush().unwrap();
+
+        let  mut name=String::new();
+        print!("Enter Your Username : ");
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut name).expect("Cant Read Name");
+        
+        
+        client::connect(&ip_of_server.trim(),&name);
     }
     else 
     {

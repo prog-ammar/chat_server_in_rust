@@ -46,7 +46,7 @@ pub fn handle_connection(mut data: TcpStream, clients:Arc<Mutex<Vec<TcpStream>>>
             }
             Err(_e) =>
             {
-                let msg=format!("\n{} Disconnected\n",name);
+                let msg=format!("\n{} Disconnected, IP : {}\n ",name,data.peer_addr().unwrap());
                 print!("{}",msg);
                 io::stdout().flush().unwrap();
                 clients.lock().unwrap().retain(|x| x.peer_addr().unwrap() != data.peer_addr().unwrap());
@@ -91,7 +91,7 @@ pub fn listens(ip_address: &str)
   println!("\nStarted Chat Server on {}:{}",local_ip,ip_address.split(':').last().unwrap());
 
 
-    let  clients=Arc::new(Mutex::new(Vec::new()));  
+ let  clients=Arc::new(Mutex::new(Vec::new()));  
 
   for stream in listener.incoming()
   {
